@@ -1,2 +1,3 @@
 # DummyML
-A Dummy ML Library For NSD Course Term Proect (: P)
+A Dummy ML Library For NSD Course Term Project (: P)
+
