@@ -16,7 +16,9 @@ DummyML has the following dependencies:
 ## Usage
 
     $ git clone --recursive https://github.com/BlenderWang9487/DummyML.git
-    $ cd DummyML/build/
+    $ cd DummyML/
+    $ mkdir build
+    $ cd build/
     $ cmake -DCMAKE_BUILD_TYPE=Release ..
     $ make
     $ cd ..
