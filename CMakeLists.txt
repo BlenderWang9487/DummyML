@@ -12,6 +12,6 @@ set(
 
 pybind11_add_module(
     dummyml
-    ${dummyml_SOURCE_DIR}/src/dummyml/main.cpp
+    ${dummyml_SOURCE_DIR}/src/dummyml/bindings.cpp
     ${dummyml_SOURCE_FILES}
     )
