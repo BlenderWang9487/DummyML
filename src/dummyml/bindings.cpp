@@ -1,5 +1,6 @@
 #include <pybind11/pybind11.h>
 #include <dummy_classifier.hpp>
+#include <utils.hpp>
 
 namespace py = pybind11;
 
@@ -12,7 +13,7 @@ PYBIND11_MODULE(dummyml, m){
         .def("__call__",
             [](
                 dummyml::dummy_classifier& dclsfr,
-                const dummyml::Model::nparray& arr
+                dummyml::Model::nparray arr
             ){
                 return dclsfr(arr);
             }

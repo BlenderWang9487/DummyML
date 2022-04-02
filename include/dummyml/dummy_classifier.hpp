@@ -1,3 +1,4 @@
+#pragma once
 #include <model.hpp>
 
 namespace dummyml
@@ -17,10 +18,10 @@ public:
     void save(const char*){
         return;
     }
-    void fit(const nparray&){
+    void fit(nparray){
         return;    
     }
-    nparray operator()(const nparray& arr){
+    nparray operator()(nparray arr){
         double* dummy_output = new double[_class_number]();
         *(dummy_output) = 1.0;
         return nparray_wrapper(_class_number,dummy_output);
