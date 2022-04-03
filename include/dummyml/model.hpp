@@ -15,22 +15,6 @@ public:
     virtual void save(const char*) = 0;
     virtual void fit(nparray) = 0;
     virtual nparray operator()(nparray) = 0;
-private:
-protected:
-    nparray nparray_wrapper(size_t size_of_arr,double* arr){
-        py::capsule free_when_done(
-            arr,
-            [](void *a_void){
-                delete[] reinterpret_cast<double*>(a_void);
-            }
-        );
-        return nparray(
-            {size_of_arr},
-            {sizeof(double)},
-            arr,
-            free_when_done
-        );
-    }
 };
 
 }
