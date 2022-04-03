@@ -25,7 +25,7 @@ public:
         std::cout<<"[NOTE] dummy_classifier save(): This func does nothing."<<std::endl;
         return;
     }
-    void fit(nparray){
+    void fit(nparray, nparray){
         std::cout<<"[NOTE] dummy_classifier fit(): This func does nothing."<<std::endl;
         return;    
     }
