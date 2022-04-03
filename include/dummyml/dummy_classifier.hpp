@@ -25,12 +25,12 @@ public:
         std::cout<<"[NOTE] dummy_classifier save(): This func does nothing."<<std::endl;
         return;
     }
-    void fit(nparray, nparray){
+    void fit(nparray_d, nparray_d){
         std::cout<<"[NOTE] dummy_classifier fit(): This func does nothing."<<std::endl;
         return;    
     }
-    nparray operator()(nparray arr){
-        auto result = nparray(_class_number);
+    nparray_d operator()(nparray_d arr){
+        auto result = nparray_d(_class_number);
         auto buf_info = result.request();
         double* ptr = (double*)buf_info.ptr;
         ptr[0] = 1.0;

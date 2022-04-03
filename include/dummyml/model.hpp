@@ -10,11 +10,12 @@ namespace dummyml{
 class Model
 {
 public:
-    typedef py::array_t<double, py::array::c_style | py::array::forcecast> nparray;
+    using nparray_d = py::array_t<double, py::array::c_style | py::array::forcecast> ;
+    using nparray = py::array;
     virtual void load(const char*) = 0;
     virtual void save(const char*) = 0;
-    virtual void fit(nparray, nparray) = 0;
-    virtual nparray operator()(nparray) = 0;
+    virtual void fit(nparray_d, nparray_d) = 0;
+    virtual nparray_d operator()(nparray_d) = 0;
 };
 
 }

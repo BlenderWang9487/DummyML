@@ -9,7 +9,7 @@ void export_dummy_regression(py::module_ &m){
         .def("__call__",
             [](
                 dummyml::dummy_regression& drgsn,
-                dummyml::Model::nparray arr
+                dummyml::Model::nparray_d arr
             ){
                 return drgsn(arr);
             }

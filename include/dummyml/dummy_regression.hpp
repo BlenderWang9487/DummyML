@@ -19,12 +19,12 @@ public:
         std::cout<<"[NOTE] dummy_regression save(): This func does nothing."<<std::endl;
         return;
     }
-    void fit(nparray, nparray){
+    void fit(nparray_d, nparray_d){
         std::cout<<"[NOTE] dummy_regression fit(): This func does nothing."<<std::endl;
         return;    
     }
-    nparray operator()(nparray arr){
-        auto result = nparray(1);
+    nparray_d operator()(nparray_d arr){
+        auto result = nparray_d(1);
         auto buf_info = result.request();
         double* ptr = (double*)buf_info.ptr;
         ptr[0] = 1.0;
