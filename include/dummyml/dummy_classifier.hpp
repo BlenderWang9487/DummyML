@@ -29,3 +29,5 @@ public:
 };
 
 }
+
+void export_dummy_classifier(py::module_ &);
