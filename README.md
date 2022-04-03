@@ -16,10 +16,6 @@ DummyML has the following dependencies:
 ## Usage
 
     $ git clone --recursive https://github.com/BlenderWang9487/DummyML.git
-    $ cd DummyML/
-    $ mkdir build
-    $ cd build/
-    $ cmake -DCMAKE_BUILD_TYPE=Release ..
-    $ make
-    $ cd ..
-    $ python3 -m pytest tests/
+    $ cd DummyML
+    $ chmod +x ./scripts/build_n_test.sh
+    $ ./scripts/build_n_test.sh Release
