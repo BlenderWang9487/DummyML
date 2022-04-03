@@ -114,12 +114,12 @@ public:
                 posterior += mean_variance::logNormalDistribution(
                     likelihood.mean(j*_class_number + i),
                     std::max(likelihood.variance(j*_class_number + i), 0.2),
-                    x.at(i),
+                    x.at(j),
                     true);
                 posterior -= mean_variance::logNormalDistribution(
                     marginal.mean(j),
                     std::max(marginal.variance(j), 0.2),
-                    x.at(i),
+                    x.at(j),
                     true);
             }
             result_vec[i] = posterior;
