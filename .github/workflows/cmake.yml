@@ -32,6 +32,6 @@ jobs:
 
     - name: Test
       working-directory: ${{github.workspace}}
+
       # Run pytest's testcases
       run: python3 -m pytest
-      
