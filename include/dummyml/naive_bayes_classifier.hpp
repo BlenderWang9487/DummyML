@@ -62,21 +62,14 @@ public:
                 "[ERROR] naive_bayes_classifier fit: class num mismatch."
             );
         }
-        // still need to find a way to determine if it's uint type 
-        // if(!y.dtype().is(py::dtype("uint32"))){
-        //     throw std::logic_error(
-        //         "[ERROR] naive_bayes_classifier fit: label dtype wrong."
-        //     );
-        // }
         size_t dataset_size = y_buf_info.shape[0];
         double* x_ptr = (double*)x_buf_info.ptr;
-        // size_t* y_ptr = (size_t*)y_buf_info.ptr;
         double* y_ptr = (double*)y_buf_info.ptr;
         for(size_t i = 0; i < dataset_size; ++i){
             // get y_label from one-hot
             size_t y_label = 0;
             double* y_ptr_current = y_ptr + i*_class_number;
-            for(size_t j; j < _class_number;++j)
+            for(size_t j = 0; j < _class_number;++j)
                 if(y_ptr_current[y_label] < y_ptr_current[j])
                     y_label = j;
             // update prior **NOTE: prior is int should divided by _accumulation when inferencing
@@ -115,8 +108,8 @@ public:
                     likelihood.mean(j*_class_number + i),
                     std::max(likelihood.variance(j*_class_number + i), 0.2),
                     x.at(j),
-                    true);
-                posterior -= mean_variance::logNormalDistribution(
+                    true) - 
+                    mean_variance::logNormalDistribution(
                     marginal.mean(j),
                     std::max(marginal.variance(j), 0.2),
                     x.at(j),
