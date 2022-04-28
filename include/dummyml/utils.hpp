@@ -9,7 +9,7 @@ private:
     std::vector<double> _mean;
     std::vector<double> _variance;
 public:
-    mean_variance(){}
+    mean_variance() = default;
     mean_variance(size_t size): _mean(size), _variance(size){}
     inline size_t size() const {
         return _mean.size();
@@ -32,8 +32,19 @@ public:
     inline static double logNormalDistribution(double m, double v, double x, bool ignore_const = false) {
         return -pow(x-m,2.0) / (ignore_const ? v : 2.0*v) - 0.5*log(ignore_const ? v : v*M_PI_2);
     }
+    double* mean_data(){
+        return _mean.data();
+    }
+    double* variance_data(){
+        return _variance.data();
+    }
 };
 
 std::vector<double> softmax(const std::vector<double>&);
+
+template<typename To, typename From>
+To dummy_cast(From ptr){
+    return static_cast<To>(static_cast<void*>(ptr));
+}
 
 }

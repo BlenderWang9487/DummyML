@@ -9,4 +9,3 @@ std::vector<double> dummyml::softmax(const std::vector<double>& v){
         ret[i] /= sum;
     return ret;
 }
-
