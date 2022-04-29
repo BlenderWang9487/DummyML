@@ -18,6 +18,7 @@ set(
     ${dummyml_SOURCE_DIR}/src/dummyml/dummy_classifier.cpp
     ${dummyml_SOURCE_DIR}/src/dummyml/naive_bayes_classifier.cpp
     ${dummyml_SOURCE_DIR}/src/dummyml/dummy_regression.cpp
+    ${dummyml_SOURCE_DIR}/src/dummyml/k_means.cpp
     ${dummyml_SOURCE_DIR}/src/dummyml/utils.cpp
     )
 

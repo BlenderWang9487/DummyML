@@ -2,6 +2,7 @@
 #include <model.hpp>
 #include <utils.hpp>
 #include <exception>
+#include <vector>
 #include <iostream>
 #include <fstream>
 
@@ -14,9 +15,9 @@ private:
     size_t _accumulation = 0;
     size_t _feature_size;
     size_t _class_number;
-    mean_variance likelihood;
-    mean_variance marginal;
-    std::vector<size_t> prior;
+    mean_variance _likelihood;
+    mean_variance _marginal;
+    std::vector<size_t> _prior;
 public:
     struct MetaData{
         size_t _a;
@@ -39,14 +40,15 @@ public:
     };
     naive_bayes_classifier() = default;
     naive_bayes_classifier (size_t feature_size, size_t class_number):
-    _feature_size(feature_size), _class_number(class_number){
+        _feature_size(feature_size),
+        _class_number(class_number){
         if(_class_number == 0){
             std::cout<<"[WARNING] naive_bayes_classifier Ctr: _class_number can't be zero, forced changed to 1."<<std::endl;
             _class_number = 1;
         }
-        likelihood = mean_variance(_feature_size * _class_number);
-        marginal = mean_variance(_feature_size);
-        prior = std::vector<size_t>(_class_number);
+        _likelihood = mean_variance(_feature_size * _class_number);
+        _marginal = mean_variance(_feature_size);
+        _prior = std::vector<size_t>(_class_number);
     }
     void load(const char* file_name){
         /* TODO
@@ -72,25 +74,25 @@ public:
         _accumulation = meta._a;
         _feature_size = meta._f;
         _class_number = meta._c;
-        likelihood = mean_variance(_feature_size * _class_number);
-        marginal = mean_variance(_feature_size);
-        prior = std::vector<size_t>(_class_number);
+        _likelihood = mean_variance(_feature_size * _class_number);
+        _marginal = mean_variance(_feature_size);
+        _prior = std::vector<size_t>(_class_number);
 
         fin_bin.read(
-            dummy_cast<char*,double*>(likelihood.mean_data()),
-            sizeof(double) * likelihood.size()
+            dummy_cast<char*,double*>(_likelihood.mean_data()),
+            sizeof(double) * _likelihood.size()
         ).read(
-            dummy_cast<char*,double*>(likelihood.variance_data()),
-            sizeof(double) * likelihood.size()
+            dummy_cast<char*,double*>(_likelihood.variance_data()),
+            sizeof(double) * _likelihood.size()
         ).read(
-            dummy_cast<char*,double*>(marginal.mean_data()),
-            sizeof(double) * marginal.size()
+            dummy_cast<char*,double*>(_marginal.mean_data()),
+            sizeof(double) * _marginal.size()
         ).read(
-            dummy_cast<char*,double*>(marginal.variance_data()),
-            sizeof(double) * marginal.size()
+            dummy_cast<char*,double*>(_marginal.variance_data()),
+            sizeof(double) * _marginal.size()
         ).read(
-            dummy_cast<char*,size_t*>(prior.data()),
-            sizeof(size_t) * prior.size()
+            dummy_cast<char*,size_t*>(_prior.data()),
+            sizeof(size_t) * _prior.size()
         );
         return;
     }
@@ -110,20 +112,20 @@ public:
             dummy_cast<char*,MetaData*>(&meta),
             sizeof(MetaData)
         ).write(
-            dummy_cast<char*,double*>(likelihood.mean_data()),
-            sizeof(double) * likelihood.size()
+            dummy_cast<char*,double*>(_likelihood.mean_data()),
+            sizeof(double) * _likelihood.size()
         ).write(
-            dummy_cast<char*,double*>(likelihood.variance_data()),
-            sizeof(double) * likelihood.size()
+            dummy_cast<char*,double*>(_likelihood.variance_data()),
+            sizeof(double) * _likelihood.size()
         ).write(
-            dummy_cast<char*,double*>(marginal.mean_data()),
-            sizeof(double) * marginal.size()
+            dummy_cast<char*,double*>(_marginal.mean_data()),
+            sizeof(double) * _marginal.size()
         ).write(
-            dummy_cast<char*,double*>(marginal.variance_data()),
-            sizeof(double) * marginal.size()
+            dummy_cast<char*,double*>(_marginal.variance_data()),
+            sizeof(double) * _marginal.size()
         ).write(
-            dummy_cast<char*,size_t*>(prior.data()),
-            sizeof(size_t) * prior.size()
+            dummy_cast<char*,size_t*>(_prior.data()),
+            sizeof(size_t) * _prior.size()
         );
         return;
     }
@@ -158,24 +160,24 @@ public:
                 if(y_ptr_current[y_label] < y_ptr_current[j])
                     y_label = j;
             // update prior **NOTE: prior is int should divided by _accumulation when inferencing
-            ++prior[y_label];
+            ++_prior[y_label];
             ++_accumulation;
             for(size_t j = 0; j < _feature_size; ++j){
                 double x_n = x_ptr[i*_feature_size + j];
                 size_t j_likelihood = j*_class_number + y_label;
 
-                double old_like_mean = likelihood.mean(j_likelihood);
-                double old_marg_mean = marginal.mean(j);
+                double old_like_mean = _likelihood.mean(j_likelihood);
+                double old_marg_mean = _marginal.mean(j);
                 
-                likelihood.mean(j_likelihood) += (x_n - old_like_mean) / _accumulation;
-                marginal.mean(j) += (x_n - old_marg_mean) / _accumulation;
+                _likelihood.mean(j_likelihood) += (x_n - old_like_mean) / _accumulation;
+                _marginal.mean(j) += (x_n - old_marg_mean) / _accumulation;
 
-                likelihood.variance(j_likelihood) += 
-                    ((x_n - old_like_mean)*(x_n - likelihood.mean(j_likelihood)) -
-                    likelihood.variance(j_likelihood)) / _accumulation;
-                marginal.variance(j) +=
-                    ((x_n - old_marg_mean)*(x_n - marginal.mean(j)) -
-                    marginal.variance(j)) / _accumulation;
+                _likelihood.variance(j_likelihood) += 
+                    ((x_n - old_like_mean)*(x_n - _likelihood.mean(j_likelihood)) -
+                    _likelihood.variance(j_likelihood)) / _accumulation;
+                _marginal.variance(j) +=
+                    ((x_n - old_marg_mean)*(x_n - _marginal.mean(j)) -
+                    _marginal.variance(j)) / _accumulation;
             }
         }
         return;    
@@ -188,17 +190,17 @@ public:
         }
         std::vector<double> result_vec(_class_number);
         for(size_t i = 0;i < _class_number;++i){
-            double posterior = log((double)prior[i]/_accumulation);
+            double posterior = log((double)_prior[i]/_accumulation);
             for(size_t j = 0;j < _feature_size;++j){
                 posterior += 
                     mean_variance::logNormalDistribution(
-                    likelihood.mean(j*_class_number + i),
-                    std::max(likelihood.variance(j*_class_number + i), 0.2),
+                    _likelihood.mean(j*_class_number + i),
+                    std::max(_likelihood.variance(j*_class_number + i), 0.2),
                     x.at(j),
                     true) - 
                     mean_variance::logNormalDistribution(
-                    marginal.mean(j),
-                    std::max(marginal.variance(j), 0.2),
+                    _marginal.mean(j),
+                    std::max(_marginal.variance(j), 0.2),
                     x.at(j),
                     true);
             }
@@ -211,6 +213,6 @@ public:
     }
 };
 
-}
+} // namespace dummyml
 
 void export_naive_bayes_classifier(py::module_ &);
