@@ -208,7 +208,11 @@ public:
         }
         auto softmax_vec = softmax(result_vec); 
         nparray_d result(_class_number);
-        std::memcpy(result.request().ptr,softmax_vec.data(),softmax_vec.size()*sizeof(double));
+        std::memcpy(
+            result.request().ptr,
+            softmax_vec.data(),
+            softmax_vec.size()*sizeof(double)
+        );
         return result;
     }
 };
