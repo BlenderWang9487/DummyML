@@ -5,8 +5,8 @@ import pytest
 def test_fit_predict():
     input_dim = 784
     k = 10
-    dataset_size = 60000
-    kms = dummyml.k_means(input_dim,k)
+    dataset_size = 60
+    kms = dummyml.k_means(input_dim,k,np.random.rand(k*input_dim))
 
     x = np.random.rand(dataset_size,input_dim)
     y = np.zeros((dataset_size,1),dtype=np.float64)

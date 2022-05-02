@@ -22,7 +22,7 @@ def test_save_load():
     nbclsfr = dummyml.naive_bayes_classifier(input_dim,class_num)
     nbclsfr.fit(np.zeros((dataset_size,input_dim)), np.ones((dataset_size,class_num)))
 
-    model_path = "./tests/test.dmy"
+    model_path = "./model/test.dmy"
     nbclsfr.save(model_path)
     assert os.path.isfile(model_path)
 
