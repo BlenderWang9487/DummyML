@@ -40,6 +40,25 @@ public:
     }
 };
 
+class kernel{
+public:
+    kernel() = default;
+    virtual double operator()(const double &x1, const double &x2) = 0;
+};
+
+class RBF_kernel: public kernel{
+private:
+    double gamma;
+public:
+    RBF_kernel(double g = 0.1): kernel(), gamma(g){}
+    void set_gamma(double g){
+        gamma = g;
+    }
+    double operator()(const double &x1, const double &x2){
+        return exp(-abs(x1-x2)*gamma);
+    }
+};
+
 std::vector<double> softmax(const std::vector<double>&);
 
 template<typename To, typename From>

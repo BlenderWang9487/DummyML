@@ -4,6 +4,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 project(dummyml)
 
 add_subdirectory(${dummyml_SOURCE_DIR}/extern/pybind11)
+add_subdirectory(${dummyml_SOURCE_DIR}/extern/eigen)
 
 include_directories(${dummyml_SOURCE_DIR}/include/dummyml)
 set(
