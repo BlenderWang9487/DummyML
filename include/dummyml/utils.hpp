@@ -1,8 +1,13 @@
 #pragma once
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#include <Eigen/Dense>
+#include <memory>
 #include <vector>
 #include <iostream>
 #include <cmath>
-#include <Eigen/Dense>
+
+namespace py = pybind11;
 
 namespace dummyml{
 
@@ -45,6 +50,10 @@ public:
 
 class kernel{
 public:
+    enum type{
+        LinearKernel = 0,
+        RadialBasisFunctionKernel
+    };
     kernel() = default;
     virtual double operator()(const double &x1, const double &x2) = 0;
     virtual double operator()(const Eigen::VectorXd& x1, const Eigen::VectorXd& x2) = 0;
@@ -65,11 +74,11 @@ public:
     }
 };
 
-class RBF_kernel: public kernel{
+class radial_basis_function_kernel: public kernel{
 private:
     double gamma;
 public:
-    RBF_kernel(double g = 0.1): kernel(), gamma(g){}
+    radial_basis_function_kernel(double g = 0.1): kernel(), gamma(g){}
     void set_gamma(double g){
         gamma = g;
     }
@@ -82,6 +91,8 @@ public:
     }
 };
 
+std::unique_ptr<kernel> get_kernel(kernel::type);
+
 std::vector<double> softmax(const std::vector<double>&);
 
 template<typename To, typename From>
@@ -89,4 +100,6 @@ To dummy_cast(From ptr){
     return static_cast<To>(static_cast<void*>(ptr));
 }
 
-}
+} // namespace dummyml
+
+void export_utils(py::module_ &m);
