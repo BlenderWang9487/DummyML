@@ -1,6 +1,9 @@
 #pragma once
 #include <vector>
+#include <iostream>
 #include <cmath>
+#include <Eigen/Dense>
+
 namespace dummyml{
 
 class mean_variance
@@ -44,6 +47,22 @@ class kernel{
 public:
     kernel() = default;
     virtual double operator()(const double &x1, const double &x2) = 0;
+    virtual double operator()(const Eigen::VectorXd& x1, const Eigen::VectorXd& x2) = 0;
+};
+
+class linear_kernel: public kernel{
+public:
+    linear_kernel() = default;
+    // test unique ptr destruction
+    ~linear_kernel(){
+        std::cout<<"linear_kernel dtr:"<<std::endl;
+    }
+    double operator()(const double &x1, const double &x2){
+        return x1*x2;
+    }
+    double operator()(const Eigen::VectorXd& x1, const Eigen::VectorXd& x2){
+        return x1.dot(x2);
+    }
 };
 
 class RBF_kernel: public kernel{
@@ -55,7 +74,11 @@ public:
         gamma = g;
     }
     double operator()(const double &x1, const double &x2){
-        return exp(-abs(x1-x2)*gamma);
+        return exp(-(x1-x2)*(x1-x2)*gamma);
+    }
+    double operator()(const Eigen::VectorXd& x1, const Eigen::VectorXd& x2){
+        auto dis = x1-x2;
+        return exp(-dis.dot(dis)*gamma);
     }
 };
 

@@ -14,9 +14,21 @@ class gaussian_process : public Model
 private:
     Eigen::MatrixXd _x_train;
     Eigen::MatrixXd _C;
-    kernel* _k;
+    double _alpha;
+    std::unique_ptr<kernel> _k;
 public:
-    gaussian_process() = default;
+    gaussian_process(
+        double alpha = 5,
+        std::unique_ptr<kernel> k = std::make_unique<linear_kernel>()
+    ): _alpha(alpha), _k(){}
+    gaussian_process(
+        nparray_d x,
+        nparray_d y,
+        double alpha = 5,
+        std::unique_ptr<kernel> k = std::make_unique<linear_kernel>()
+    ): _alpha(alpha), _k(std::move(k)){
+        fit(x, y);
+    }
     void load(const char*){
         
     }
@@ -28,6 +40,9 @@ public:
     }
     nparray_d operator()(nparray_d x){
 
+    }
+    void set_alpha(double alpha){
+        _alpha = alpha;
     }
 };
 
