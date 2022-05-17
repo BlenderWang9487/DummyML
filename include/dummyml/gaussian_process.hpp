@@ -21,13 +21,13 @@ private:
     std::unique_ptr<kernel> _k;
 public:
     gaussian_process(
-        double alpha = 5,
+        double alpha = 0.2,
         kernel::type k_type = kernel::type::LinearKernel
     ): _alpha(alpha), _k(get_kernel(k_type)){}
     gaussian_process(
         nparray_d x,
         nparray_d y,
-        double alpha = 5,
+        double alpha = 0.2,
         kernel::type k_type = kernel::type::LinearKernel
     ): _alpha(alpha), _k(get_kernel(k_type)){
         fit(x, y);

@@ -9,10 +9,10 @@
 namespace py = pybind11;
 
 PYBIND11_MODULE(dummyml, m){
+    export_utils(m);
     export_dummy_classifier(m);
     export_dummy_regression(m);
     export_naive_bayes_classifier(m);
     export_k_means(m);
     export_gaussian_process(m);
-    export_utils(m);
 }
