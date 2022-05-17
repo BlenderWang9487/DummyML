@@ -14,9 +14,9 @@ namespace dummyml
 class gaussian_process : public Model
 {
 private:
-    Eigen::MatrixXd _x;
-    Eigen::MatrixXd _y;
-    Eigen::MatrixXd _C_inv;
+    EigenMatrix _x;
+    EigenMatrix _y;
+    EigenMatrix _C_inv;
     double _alpha;
     std::unique_ptr<kernel> _k;
 public:
@@ -80,13 +80,13 @@ public:
                 "[ERROR] gaussian_process operator(): x size & feature size mismatch."
             );
         }
-        Eigen::VectorXd x_vec(feature_size);
-        Eigen::MatrixXd kt_vec(1, dataset_size);
+        EigenVector x_vec(feature_size);
+        EigenMatrix kt_vec(1, dataset_size);
         memcpy(x_vec.data(), x_buf_info.ptr, _x.cols()*sizeof(double));
 
         for(size_t i = 0;i < dataset_size;++i)
             kt_vec(0, i) = (*_k)(_x.row(i), x_vec);
-        Eigen::MatrixXd ktC_inv = kt_vec * _C_inv;
+        EigenMatrix ktC_inv = kt_vec * _C_inv;
         nparray_d result(2);
         double* result_ptr = (double*)result.request().ptr;
         result_ptr[0] = (ktC_inv * _y)(0);

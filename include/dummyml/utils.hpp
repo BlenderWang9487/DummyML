@@ -11,6 +11,14 @@ namespace py = pybind11;
 
 namespace dummyml{
 
+using EigenMatrix = Eigen::Matrix<
+    double,
+    Eigen::Dynamic,
+    Eigen::Dynamic,
+    Eigen::RowMajor
+>;
+using EigenVector = Eigen::VectorXd;
+
 class mean_variance
 {
 private:
@@ -57,8 +65,8 @@ public:
     kernel() = default;
     virtual double operator()(const double &x1, const double &x2) = 0;
     virtual double operator()(
-        Eigen::Ref<Eigen::VectorXd,0,Eigen::InnerStride<>> x1,
-        Eigen::Ref<Eigen::VectorXd,0,Eigen::InnerStride<>> x2) = 0;
+        Eigen::Ref<EigenVector> x1,
+        Eigen::Ref<EigenVector> x2) = 0;
 };
 
 class linear_kernel: public kernel{
@@ -68,8 +76,8 @@ public:
         return x1*x2;
     }
     double operator()(
-        Eigen::Ref<Eigen::VectorXd,0,Eigen::InnerStride<>> x1,
-        Eigen::Ref<Eigen::VectorXd,0,Eigen::InnerStride<>> x2){
+        Eigen::Ref<EigenVector> x1,
+        Eigen::Ref<EigenVector> x2){
         return x1.dot(x2);
     }
 };
@@ -86,9 +94,9 @@ public:
         return exp(-gamma*(x1-x2)*(x1-x2));
     }
     double operator()(
-        Eigen::Ref<Eigen::VectorXd,0,Eigen::InnerStride<>> x1,
-        Eigen::Ref<Eigen::VectorXd,0,Eigen::InnerStride<>> x2){
-        Eigen::VectorXd dis = x1-x2;
+        Eigen::Ref<EigenVector> x1,
+        Eigen::Ref<EigenVector> x2){
+        EigenVector dis = x1-x2;
         return exp(-gamma*dis.dot(dis));
     }
 };
