@@ -32,6 +32,9 @@ public:
     ): _alpha(alpha), _k(get_kernel(k_type)){
         fit(x, y);
     }
+    double run_kernel(double x, double y){
+        return (*_k)(x,y);
+    }
     void load(const char*){
         
     }
@@ -55,16 +58,18 @@ public:
         _x.resize(dataset_size, feature_size);
         _y.resize(dataset_size, 1);
         _C_inv.resize(dataset_size, dataset_size);
-        memcpy(_x.data(), x_ptr, dataset_size*feature_size);
-        memcpy(_y.data(), y_ptr, dataset_size);
+        memcpy(_x.data(), x_ptr, dataset_size * feature_size * sizeof(double));
+        memcpy(_y.data(), y_ptr, dataset_size                * sizeof(double));
         
         // calculate _C_inv
         for(size_t row = 0;row < dataset_size; ++row)
-            for(size_t col = 0;col < dataset_size; ++col)
+            for(size_t col = 0;col < dataset_size; ++col){
                 _C_inv(row, col) = (*_k)(_x.row(row), _x.row(col));
+            }
         for(size_t diag = 0;diag < dataset_size; ++diag)
             _C_inv(diag ,diag) += _alpha;
         _C_inv = _C_inv.inverse();
+        return;
     }
     nparray_d operator()(nparray_d x){
         auto x_buf_info = x.request();
@@ -77,7 +82,7 @@ public:
         }
         Eigen::VectorXd x_vec(feature_size);
         Eigen::MatrixXd kt_vec(1, dataset_size);
-        memcpy(x_vec.data(), x_buf_info.ptr, _x.cols());
+        memcpy(x_vec.data(), x_buf_info.ptr, _x.cols()*sizeof(double));
 
         for(size_t i = 0;i < dataset_size;++i)
             kt_vec(0, i) = (*_k)(_x.row(i), x_vec);
@@ -86,8 +91,8 @@ public:
         double* result_ptr = (double*)result.request().ptr;
         result_ptr[0] = (ktC_inv * _y)(0);
         result_ptr[1] =
-            ((*_k)(x_vec, x_vec) + _alpha) - // c
-            (ktC_inv * kt_vec.transpose())(0);            // kt * C^-1 * k
+            ((*_k)(x_vec, x_vec) + _alpha) -  // c
+            (ktC_inv * kt_vec.transpose())(0);// kt * C^-1 * k
         return result;
     }
     void set_alpha(double alpha){

@@ -37,5 +37,6 @@ void export_gaussian_process(py::module_ &m){
                 return gp(arr);
             }
         )
+        .def("run_kernel",&dummyml::gaussian_process::run_kernel) // debug
         ;
 }

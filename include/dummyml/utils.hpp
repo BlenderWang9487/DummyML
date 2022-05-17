@@ -56,20 +56,20 @@ public:
     };
     kernel() = default;
     virtual double operator()(const double &x1, const double &x2) = 0;
-    virtual double operator()(const Eigen::VectorXd& x1, const Eigen::VectorXd& x2) = 0;
+    virtual double operator()(
+        Eigen::Ref<Eigen::VectorXd,0,Eigen::InnerStride<>> x1,
+        Eigen::Ref<Eigen::VectorXd,0,Eigen::InnerStride<>> x2) = 0;
 };
 
 class linear_kernel: public kernel{
 public:
     linear_kernel() = default;
-    // test unique ptr destruction
-    ~linear_kernel(){
-        std::cout<<"linear_kernel dtr:"<<std::endl;
-    }
     double operator()(const double &x1, const double &x2){
         return x1*x2;
     }
-    double operator()(const Eigen::VectorXd& x1, const Eigen::VectorXd& x2){
+    double operator()(
+        Eigen::Ref<Eigen::VectorXd,0,Eigen::InnerStride<>> x1,
+        Eigen::Ref<Eigen::VectorXd,0,Eigen::InnerStride<>> x2){
         return x1.dot(x2);
     }
 };
@@ -83,11 +83,13 @@ public:
         gamma = g;
     }
     double operator()(const double &x1, const double &x2){
-        return exp(-(x1-x2)*(x1-x2)*gamma);
+        return exp(-gamma*(x1-x2)*(x1-x2));
     }
-    double operator()(const Eigen::VectorXd& x1, const Eigen::VectorXd& x2){
-        auto dis = x1-x2;
-        return exp(-dis.dot(dis)*gamma);
+    double operator()(
+        Eigen::Ref<Eigen::VectorXd,0,Eigen::InnerStride<>> x1,
+        Eigen::Ref<Eigen::VectorXd,0,Eigen::InnerStride<>> x2){
+        Eigen::VectorXd dis = x1-x2;
+        return exp(-gamma*dis.dot(dis));
     }
 };
 
