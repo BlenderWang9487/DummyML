@@ -128,7 +128,11 @@ public:
         nparray_d ms({_k, _feature_size});
         auto ms_ptr = (double*)ms.request().ptr;
         for(size_t k = 0;k < _k;k++)
-            memcpy(ms_ptr + k * _feature_size, _means[k].data(),_feature_size);
+            memcpy(
+                ms_ptr + k * _feature_size,
+                _means[k].data(),
+                _feature_size * sizeof(double)
+            );
         return ms;
     }
     double sum_of_distance(nparray_d x) const {
@@ -151,9 +155,7 @@ public:
                         _means[cluster][feature];
                     distance += dif*dif;
                 }
-                if(distance < min_distance){
-                    min_distance = distance;
-                }
+                min_distance = std::min(min_distance, distance);
             }
             sum_of_dis += min_distance;
         }
