@@ -5,8 +5,6 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include <cstdlib>
-#include <ctime>
 
 namespace dummyml
 {
@@ -18,6 +16,26 @@ private:
     size_t _feature_size;
     std::vector<std::vector<double>> _means;
 public:
+    struct MetaData{
+        size_t _k;
+        size_t _f;
+        size_t check_sum;
+        MetaData() = default;
+        MetaData(const k_means& model):
+            _k(model._k),
+            _f(model._feature_size),
+            check_sum(
+                model._k ^
+                model._feature_size
+            ){}
+        bool is_check_sum_correct(){
+            return (_k ^ _f) == check_sum;
+        }
+    };
+    k_means() = default;
+    k_means(const char* file_name){
+        load(file_name);
+    }
     k_means(size_t feature_size, size_t k, nparray_d init_means):
         _feature_size(feature_size),
         _k(k),
@@ -30,16 +48,58 @@ public:
                 "[ERROR] k_means initialize_means: means size mismatch."
             );
         }
-        srand(time(nullptr));
         for(size_t k = 0;k < _k;++k)
             for(size_t f = 0;f < _feature_size;++f)
                 _means[k][f] = init_means.at(k*_feature_size + f);
     }
-    void load(const char*){
-        
+    void load(const char* file_name){
+        std::fstream fin_bin(file_name,std::ios_base::in | std::ios_base::binary);
+        if(fin_bin.fail()){
+            throw std::runtime_error(
+                "[ERROR] k_means load: failed to load model."
+            );
+        }
+        MetaData meta;
+        fin_bin.read(
+            dummy_cast<char*,MetaData*>(&meta),
+            sizeof(MetaData)
+        );
+        if(!meta.is_check_sum_correct()){
+            throw std::runtime_error(
+                "[ERROR] k_means load: MetaData mismatch."
+            );
+        }
+        _k = meta._k;
+        _feature_size = meta._f;
+        _means = std::vector<std::vector<double>>(
+            _k,
+            std::vector<double>(_feature_size)
+        );
+        for(size_t k = 0;k < _k;++k)
+            fin_bin.read(
+                dummy_cast<char*,double*>(_means[k].data()),
+                sizeof(double) * _means[k].size()
+            );
+        return;
     }
-    void save(const char*){
-        
+    void save(const char* file_name){
+        std::fstream fout_bin(file_name,std::ios_base::out | std::ios_base::binary);
+        if(fout_bin.fail()){
+            throw std::runtime_error(
+                "[ERROR] k_means save: failed to save model."
+            );
+        }
+        MetaData meta(*this);
+        fout_bin.write(
+            dummy_cast<char*,MetaData*>(&meta),
+            sizeof(MetaData)
+        );
+        for(size_t k = 0;k < _k;++k)
+            fout_bin.write(
+                dummy_cast<char*,double*>(_means[k].data()),
+                sizeof(double) * _means[k].size()
+            );
+        return;
     }
     void fit(nparray_d x, nparray_d y){
         // each y will be assigned a cluster after fitting.

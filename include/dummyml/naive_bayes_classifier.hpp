@@ -39,6 +39,9 @@ public:
         }
     };
     naive_bayes_classifier() = default;
+    naive_bayes_classifier(const char* filename){
+        load(filename);
+    }
     naive_bayes_classifier (size_t feature_size, size_t class_number):
         _feature_size(feature_size),
         _class_number(class_number){
@@ -51,10 +54,6 @@ public:
         _prior = std::vector<size_t>(_class_number);
     }
     void load(const char* file_name){
-        /* TODO
-        1. load data to likelihood and marginal table
-        2. if failed, throw exception
-        */
         std::fstream fin_bin(file_name,std::ios_base::in | std::ios_base::binary);
         if(fin_bin.fail()){
             throw std::runtime_error(
@@ -97,10 +96,6 @@ public:
         return;
     }
     void save(const char* file_name){
-        /* TODO
-        1. save likelihood and marginal table to file
-        2. if failed, throw exception
-        */
         std::fstream fout_bin(file_name,std::ios_base::out | std::ios_base::binary);
         if(fout_bin.fail()){
             throw std::runtime_error(
@@ -194,15 +189,17 @@ public:
             for(size_t j = 0;j < _feature_size;++j){
                 posterior += 
                     mean_variance::logNormalDistribution(
-                    _likelihood.mean(j*_class_number + i),
-                    std::max(_likelihood.variance(j*_class_number + i), 0.2),
-                    x.at(j),
-                    true) - 
+                        _likelihood.mean(j*_class_number + i),
+                        std::max(_likelihood.variance(j*_class_number + i), 0.2),
+                        x.at(j),
+                        true
+                    ) - 
                     mean_variance::logNormalDistribution(
-                    _marginal.mean(j),
-                    std::max(_marginal.variance(j), 0.2),
-                    x.at(j),
-                    true);
+                        _marginal.mean(j),
+                        std::max(_marginal.variance(j), 0.2),
+                        x.at(j),
+                        true
+                    );
             }
             result_vec[i] = posterior;
         }

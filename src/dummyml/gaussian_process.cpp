@@ -2,13 +2,15 @@
 
 void export_gaussian_process(py::module_ &m){
     py::class_<dummyml::gaussian_process>(m, "gaussian_process")
+        .def(py::init<const char*>())
         .def(
             py::init<
                 double,
                 dummyml::kernel::type
             >(),
             py::arg("alpha") = 0.2,
-            py::arg("k_type") = dummyml::kernel::type::LinearKernel)
+            py::arg("k_type") = dummyml::kernel::type::LinearKernel
+        )
         .def(
             py::init<
                 dummyml::Model::nparray_d,
@@ -20,7 +22,7 @@ void export_gaussian_process(py::module_ &m){
             py::arg("y"),
             py::arg("alpha") = 0.2,
             py::arg("k_type") = dummyml::kernel::type::LinearKernel
-            )
+        )
         .def("load",&dummyml::gaussian_process::load)
         .def("save",&dummyml::gaussian_process::save)
         .def(

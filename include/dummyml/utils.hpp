@@ -59,9 +59,10 @@ public:
 class kernel{
 public:
     enum type{
-        LinearKernel = 0,
+        NoneKernel = 0,
+        LinearKernel,
         RadialBasisFunctionKernel
-    };
+    } _T;
     kernel() = default;
     virtual double operator()(const double &x1, const double &x2) = 0;
     virtual double operator()(
@@ -71,7 +72,9 @@ public:
 
 class linear_kernel: public kernel{
 public:
-    linear_kernel() = default;
+    linear_kernel(): kernel(){
+        _T = LinearKernel;
+    }
     double operator()(const double &x1, const double &x2){
         return x1*x2;
     }
@@ -86,7 +89,9 @@ class radial_basis_function_kernel: public kernel{
 private:
     double gamma;
 public:
-    radial_basis_function_kernel(double g = 0.1): kernel(), gamma(g){}
+    radial_basis_function_kernel(double g = 0.1): kernel(), gamma(g){
+        _T = RadialBasisFunctionKernel;
+    }
     void set_gamma(double g){
         gamma = g;
     }

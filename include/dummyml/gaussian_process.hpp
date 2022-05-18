@@ -20,6 +20,30 @@ private:
     double _alpha;
     std::unique_ptr<kernel> _k;
 public:
+    struct MetaData{
+        Eigen::Index _n;
+        Eigen::Index _f;
+        kernel::type _t;
+        double _a;
+        Eigen::Index check_sum;
+        MetaData() = default;
+        MetaData(const gaussian_process& model):
+            _n(model._x.rows()),
+            _f(model._x.cols()),
+            _t(model._k->_T),
+            _a(model._alpha),
+            check_sum(
+                model._x.rows() ^
+                model._x.cols() ^
+                model._k->_T
+            ){}
+        bool is_check_sum_correct(){
+            return (_n ^ _f ^ _t) == check_sum;
+        }
+    };
+    gaussian_process(const char* filename){
+        load(filename);
+    }
     gaussian_process(
         double alpha = 0.2,
         kernel::type k_type = kernel::type::LinearKernel
@@ -35,11 +59,62 @@ public:
     double run_kernel(double x, double y){
         return (*_k)(x,y);
     }
-    void load(const char*){
-        
+    void load(const char* file_name){
+        std::fstream fin_bin(file_name,std::ios_base::in | std::ios_base::binary);
+        if(fin_bin.fail()){
+            throw std::runtime_error(
+                "[ERROR] gaussian_process load: failed to load model."
+            );
+        }
+        MetaData meta;
+        fin_bin.read(
+            dummy_cast<char*,MetaData*>(&meta),
+            sizeof(MetaData)
+        );
+        if(!meta.is_check_sum_correct()){
+            throw std::runtime_error(
+                "[ERROR] gaussian_process load: MetaData mismatch."
+            );
+        }
+        _alpha = meta._a;
+        _k = get_kernel(meta._t);
+        _x = EigenMatrix(meta._n, meta._f);
+        _y = EigenMatrix(meta._n, 1);
+        _C_inv = EigenMatrix(meta._n, meta._n);
+        fin_bin.read(
+            dummy_cast<char*,double*>(_x.data()),
+            sizeof(double) * _x.size()
+        ).read(
+            dummy_cast<char*,double*>(_y.data()),
+            sizeof(double) * _y.size()
+        ).read(
+            dummy_cast<char*,double*>(_C_inv.data()),
+            sizeof(double) * _C_inv.size()
+        );
+        return;
     }
-    void save(const char*){
-        
+    void save(const char* file_name){
+        std::fstream fout_bin(file_name,std::ios_base::out | std::ios_base::binary);
+        if(fout_bin.fail()){
+            throw std::runtime_error(
+                "[ERROR] gaussian_process save: failed to save model."
+            );
+        }
+        MetaData meta(*this);
+        fout_bin.write(
+            dummy_cast<char*,MetaData*>(&meta),
+            sizeof(MetaData)
+        ).write(
+            dummy_cast<char*,double*>(_x.data()),
+            sizeof(double) * _x.size()
+        ).write(
+            dummy_cast<char*,double*>(_y.data()),
+            sizeof(double) * _y.size()
+        ).write(
+            dummy_cast<char*,double*>(_C_inv.data()),
+            sizeof(double) * _C_inv.size()
+        );
+        return;
     }
     void fit(nparray_d x, nparray_d y){
         auto x_buf_info = x.request();
