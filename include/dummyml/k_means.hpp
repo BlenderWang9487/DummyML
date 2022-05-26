@@ -14,6 +14,7 @@ class k_means : public Model
 private:
     size_t _k;
     size_t _feature_size;
+    double _inertia = 0.0;
     std::vector<std::vector<double>> _means;
 public:
     struct MetaData{
@@ -36,22 +37,10 @@ public:
     k_means(const char* file_name){
         load(file_name);
     }
-    k_means(size_t feature_size, size_t k, nparray_d init_means):
+    k_means(size_t feature_size, size_t k):
         _feature_size(feature_size),
         _k(k),
-        _means(k, std::vector<double>(feature_size)){
-        initialize_means(init_means);
-    }
-    void initialize_means(nparray_d& init_means){
-        if(init_means.size() != _k*_feature_size){
-            throw std::length_error(
-                "[ERROR] k_means initialize_means: means size mismatch."
-            );
-        }
-        for(size_t k = 0;k < _k;++k)
-            for(size_t f = 0;f < _feature_size;++f)
-                _means[k][f] = init_means.at(k*_feature_size + f);
-    }
+        _means(k, std::vector<double>(feature_size)){}
     void load(const char* file_name){
         std::fstream fin_bin(file_name,std::ios_base::in | std::ios_base::binary);
         if(fin_bin.fail()){
@@ -101,34 +90,44 @@ public:
             );
         return;
     }
-    void fit(nparray_d x, nparray_d y){
+    void fit(nparray_d, nparray_d){}
+    void fit_clusters(nparray_d x, nparray_i y){
         // each y will be assigned a cluster after fitting.
-        auto x_buf_info = x.request();
-        auto y_buf_info = y.request();
-        if(x_buf_info.shape[1] != _feature_size){
+        auto x_mod = x.unchecked<2>();
+        double* x_ptr = (double*)x.request().ptr;
+        auto y_mod = y.mutable_unchecked<1>();
+        if(x_mod.shape(1) != _feature_size){
             throw std::length_error(
                 "[ERROR] k_means fit: feature size mismatch."
             );
         }
-        if(x_buf_info.shape[0] != y_buf_info.shape[0]){
+        if(x_mod.shape(0) != y_mod.shape(0)){
             throw std::length_error(
                 "[ERROR] k_means fit: data & cluster counts mismatch."
             );
         }
-        if(y_buf_info.shape[1] != 1){
-            throw std::length_error(
-                "[ERROR] k_means fit: each data in y only need one number."
-            );
-        }
-        size_t dataset_size = y_buf_info.shape[0];
-        double* x_ptr = (double*)x_buf_info.ptr;
-        double* y_ptr = (double*)y_buf_info.ptr;
+        size_t dataset_size = y_mod.shape(0);
         
-        // assign cluster to every datapoint (E step)
+        // calculate each cluster's new mean
+        std::vector<size_t> count(_k);
+        _means.assign(_k,std::vector<double>(_feature_size));
+        for(size_t index = 0;index < dataset_size;++index){
+            int cluster = y_mod(index);
+            ++count[cluster];
+            for(size_t feature = 0;feature < _feature_size;++feature)
+                _means[cluster][feature] += x_ptr[index * _feature_size + feature];
+        }
+        for(size_t cluster = 0;cluster < _k;++cluster)
+            if(count[cluster])
+                for(size_t feature = 0;feature < _feature_size;++feature)
+                    _means[cluster][feature] /= count[cluster];
+        
+        // assign cluster to every datapoint
+        _inertia = 0.0;
         for(size_t index = 0;index < dataset_size;++index){
             double min_distance = std::numeric_limits<double>::infinity();
-            size_t min_cluster = 0.0;
-            for(size_t cluster = 0;cluster < _k;++cluster){
+            int min_cluster = 0;
+            for(int cluster = 0;cluster < _k;++cluster){
                 double distance = 0.0;
                 for(size_t feature = 0;feature < _feature_size;++feature){
                     double dif =
@@ -141,25 +140,16 @@ public:
                     min_cluster = cluster;
                 }
             }
-            y_ptr[index] = (double) min_cluster;
+            y_mod(index) = min_cluster;
+            _inertia += min_distance;
         }
-
-        // calculate each cluster's new mean (M step)
-        std::vector<size_t> count(_k);
-        _means.assign(_k,std::vector<double>(_feature_size));
-        for(size_t index = 0;index < dataset_size;++index){
-            size_t cluster = (size_t)std::round(y_ptr[index]);
-            ++count[cluster];
-            for(size_t feature = 0;feature < _feature_size;++feature)
-                _means[cluster][feature] += x_ptr[index * _feature_size + feature];
-        }
-        for(size_t cluster = 0;cluster < _k;++cluster)
-            if(count[cluster])
-                for(size_t feature = 0;feature < _feature_size;++feature)
-                    _means[cluster][feature] /= count[cluster];
     }
-    nparray_d operator()(nparray_d x){
-        if(x.size() != _feature_size){
+    nparray_d operator()(nparray_d){
+        return nparray_d();
+    }
+    int pred(nparray_d x){
+        auto x_mod = x.unchecked<1>();
+        if(x_mod.shape(0) != _feature_size){
             throw std::length_error(
                 "[ERROR] k_means(): feature size mismatch."
             );
@@ -170,9 +160,7 @@ public:
         for(size_t cluster = 0;cluster < _k;++cluster){
             double distance = 0.0;
             for(size_t feature = 0;feature < _feature_size;++feature){
-                double dif =
-                   x.at(feature) -
-                    _means[cluster][feature];
+                double dif = x_mod(feature) - _means[cluster][feature];
                 distance += dif*dif;
             }
             if(distance < min_distance){
@@ -180,9 +168,7 @@ public:
                 min_cluster = cluster;
             }
         }
-        nparray_d result(1);
-        *(double*)result.request().ptr = (double)min_cluster;
-        return result;
+        return min_cluster;
     }
     nparray_d means() const {
         nparray_d ms({_k, _feature_size});
@@ -195,31 +181,8 @@ public:
             );
         return ms;
     }
-    double sum_of_distance(nparray_d x) const {
-        auto x_buf_info = x.request();
-        if(x_buf_info.shape[1] != _feature_size){
-            throw std::length_error(
-                "[ERROR] k_means sum_of_distance: feature size mismatch."
-            );
-        }
-        double sum_of_dis = 0.0;
-        size_t dataset_size = x_buf_info.shape[0];
-        double* x_ptr = (double*)x_buf_info.ptr;
-        for(size_t index = 0;index < dataset_size;++index){
-            double min_distance = std::numeric_limits<double>::infinity();
-            for(size_t cluster = 0;cluster < _k;++cluster){
-                double distance = 0.0;
-                for(size_t feature = 0;feature < _feature_size;++feature){
-                    double dif =
-                        x_ptr[index * _feature_size + feature] -
-                        _means[cluster][feature];
-                    distance += dif*dif;
-                }
-                min_distance = std::min(min_distance, distance);
-            }
-            sum_of_dis += min_distance;
-        }
-        return sum_of_dis;
+    inline double inertia() const {
+        return _inertia;
     }
 };
 
