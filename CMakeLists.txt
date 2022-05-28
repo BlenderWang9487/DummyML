@@ -16,15 +16,15 @@ set(
 set(
     dummyml_SOURCE_FILES
     ${dummyml_SOURCE_FILES}
-    ${dummyml_SOURCE_DIR}/src/dummyml/dummyml.cpp
+    ${dummyml_SOURCE_DIR}/src/dummyml/utils.cpp
+    ${dummyml_SOURCE_DIR}/src/dummyml/dummy_regression.cpp
+    ${dummyml_SOURCE_DIR}/src/dummyml/gaussian_process.cpp
     ${dummyml_SOURCE_DIR}/src/dummyml/dummy_classifier.cpp
     ${dummyml_SOURCE_DIR}/src/dummyml/naive_bayes_classifier.cpp
-    ${dummyml_SOURCE_DIR}/src/dummyml/dummy_regression.cpp
+    ${dummyml_SOURCE_DIR}/src/dummyml/dummy_clustering.cpp
     ${dummyml_SOURCE_DIR}/src/dummyml/k_means.cpp
     ${dummyml_SOURCE_DIR}/src/dummyml/kernel_k_means.cpp
-    ${dummyml_SOURCE_DIR}/src/dummyml/dummy_clustering.cpp
-    ${dummyml_SOURCE_DIR}/src/dummyml/utils.cpp
-    ${dummyml_SOURCE_DIR}/src/dummyml/gaussian_process.cpp
+    ${dummyml_SOURCE_DIR}/src/dummyml/dummyml.cpp
     )
 
 pybind11_add_module(
