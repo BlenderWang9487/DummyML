@@ -1,10 +1,11 @@
-from dummyml import dummyml
+import dummyml
 import numpy as np
 
 def test_inference():
-    dim = 10000
-    dclsfr = dummyml.dummy_classifier(5,dim)
-    result = dclsfr(np.zeros(5))
+    output_dim = 10000
+    input_dim = 5
+    dclsfr = dummyml.dummy_classifier(input_dim,output_dim)
+    result = dclsfr(np.zeros(input_dim))
     assert result[0] == 1.0
     flag = True
     for r in result[1:]:
@@ -12,3 +13,11 @@ def test_inference():
             flag = False
             break
     assert flag
+
+def test_wrong_class_num():
+    output_dim = 0
+    input_dim = 5
+    dclsfr = dummyml.dummy_classifier(input_dim,output_dim)
+    result = dclsfr(np.zeros(input_dim))
+    assert result.shape == (1,)
+    

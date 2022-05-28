@@ -10,7 +10,7 @@ void export_dummy_classifier(py::module_ &m){
         .def("__call__",
             [](
                 dummyml::dummy_classifier& dclsfr,
-                dummyml::Model::nparray arr
+                dummyml::Model::nparray_d arr
             ){
                 return dclsfr(arr);
             }
