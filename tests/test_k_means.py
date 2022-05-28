@@ -11,7 +11,12 @@ def test_fit_predict():
     x = np.random.rand(dataset_size,input_dim)
     y = np.random.randint(0,k,size=dataset_size, dtype=np.int32)
 
+    initial_iner = kms.inertia
+
     for i in range(10):
         kms.fit(x,y)
+
+    after_fit_iner = kms.inertia
     
     assert kms(np.random.rand(input_dim)) < k
+    assert after_fit_iner < initial_iner
