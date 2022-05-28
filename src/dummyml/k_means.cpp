@@ -16,7 +16,9 @@ void export_k_means(py::module_ &m){
                 return kms.pred(arr);
             }
         )
-        .def_property_readonly("inertia",&dummyml::k_means::inertia)
+        .def_property_readonly("inertia",[](dummyml::k_means& kms)->double{
+            return kms.inertia();
+        })
         .def("means",&dummyml::k_means::means)
         ;
 }

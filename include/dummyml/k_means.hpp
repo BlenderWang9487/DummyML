@@ -14,7 +14,7 @@ class k_means : public Model
 private:
     size_t _k;
     size_t _feature_size;
-    double _inertia = 0.0;
+    double _inertia = std::numeric_limits<double>::infinity();
     std::vector<std::vector<double>> _means;
 public:
     struct MetaData{

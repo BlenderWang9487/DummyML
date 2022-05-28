@@ -101,8 +101,7 @@ public:
     double operator()(
         Eigen::Ref<EigenVector> x1,
         Eigen::Ref<EigenVector> x2){
-        EigenVector dis = x1-x2;
-        return exp(-gamma*dis.dot(dis));
+        return exp(-gamma*((x1-x2).squaredNorm()));
     }
 };
 

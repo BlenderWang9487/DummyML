@@ -18,7 +18,7 @@ private:
     EigenMatrix _y;
     EigenMatrix _C_inv;
     double _alpha;
-    std::unique_ptr<kernel> _k;
+    std::unique_ptr<kernel> _kernel;
 public:
     struct MetaData{
         Eigen::Index _n;
@@ -30,12 +30,12 @@ public:
         MetaData(const gaussian_process& model):
             _n(model._x.rows()),
             _f(model._x.cols()),
-            _t(model._k->_T),
+            _t(model._kernel->_T),
             _a(model._alpha),
             check_sum(
                 model._x.rows() ^
                 model._x.cols() ^
-                model._k->_T
+                model._kernel->_T
             ){}
         bool is_check_sum_correct(){
             return (_n ^ _f ^ _t) == check_sum;
@@ -47,17 +47,17 @@ public:
     gaussian_process(
         double alpha = 0.2,
         kernel::type k_type = kernel::type::LinearKernel
-    ): _alpha(alpha), _k(get_kernel(k_type)){}
+    ): _alpha(alpha), _kernel(get_kernel(k_type)){}
     gaussian_process(
         nparray_d x,
         nparray_d y,
         double alpha = 0.2,
         kernel::type k_type = kernel::type::LinearKernel
-    ): _alpha(alpha), _k(get_kernel(k_type)){
+    ): _alpha(alpha), _kernel(get_kernel(k_type)){
         fit(x, y);
     }
     double run_kernel(double x, double y){
-        return (*_k)(x,y);
+        return (*_kernel)(x,y);
     }
     void load(const char* file_name){
         std::fstream fin_bin(file_name,std::ios_base::in | std::ios_base::binary);
@@ -77,7 +77,7 @@ public:
             );
         }
         _alpha = meta._a;
-        _k = get_kernel(meta._t);
+        _kernel = get_kernel(meta._t);
         _x = EigenMatrix(meta._n, meta._f);
         _y = EigenMatrix(meta._n, 1);
         _C_inv = EigenMatrix(meta._n, meta._n);
@@ -138,9 +138,8 @@ public:
         
         // calculate _C_inv
         for(size_t row = 0;row < dataset_size; ++row)
-            for(size_t col = 0;col < dataset_size; ++col){
-                _C_inv(row, col) = (*_k)(_x.row(row), _x.row(col));
-            }
+            for(size_t col = row;col < dataset_size; ++col)
+                _C_inv(col, row) = _C_inv(row, col) = (*_kernel)(_x.row(row), _x.row(col));
         for(size_t diag = 0;diag < dataset_size; ++diag)
             _C_inv(diag ,diag) += _alpha;
         _C_inv = _C_inv.inverse();
@@ -160,13 +159,13 @@ public:
         memcpy(x_vec.data(), x_buf_info.ptr, _x.cols()*sizeof(double));
 
         for(size_t i = 0;i < dataset_size;++i)
-            kt_vec(0, i) = (*_k)(_x.row(i), x_vec);
+            kt_vec(0, i) = (*_kernel)(_x.row(i), x_vec);
         EigenMatrix ktC_inv = kt_vec * _C_inv;
         nparray_d result(2);
         double* result_ptr = (double*)result.request().ptr;
         result_ptr[0] = (ktC_inv * _y)(0);
         result_ptr[1] =
-            ((*_k)(x_vec, x_vec) + _alpha) -  // c
+            ((*_kernel)(x_vec, x_vec) + _alpha) -  // c
             (ktC_inv * kt_vec.transpose())(0);// kt * C^-1 * k
         return result;
     }

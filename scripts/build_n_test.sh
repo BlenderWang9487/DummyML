@@ -1,12 +1,12 @@
 #!/bin/bash
 
 if [[ !(-d src) ]]; then
-  cd ..
+    cd ..
 fi
 
 if [[ !(-d src) ]]; then
-  echo "Please run this script in DummyML folder."
-  exit 1
+    echo "Please run this script in DummyML folder."
+    exit 1
 fi
 
 if [ -n $1 ]; then

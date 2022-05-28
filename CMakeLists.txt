@@ -21,6 +21,7 @@ set(
     ${dummyml_SOURCE_DIR}/src/dummyml/naive_bayes_classifier.cpp
     ${dummyml_SOURCE_DIR}/src/dummyml/dummy_regression.cpp
     ${dummyml_SOURCE_DIR}/src/dummyml/k_means.cpp
+    ${dummyml_SOURCE_DIR}/src/dummyml/kernel_k_means.cpp
     ${dummyml_SOURCE_DIR}/src/dummyml/utils.cpp
     ${dummyml_SOURCE_DIR}/src/dummyml/gaussian_process.cpp
     )
