@@ -23,7 +23,7 @@ def test_fit():
 def test_large_dataset():
     input_dim = 3
     k = 3
-    dataset_size = 11000
+    dataset_size = 2000
     x = np.random.rand(dataset_size,input_dim)
     kkms = dummyml.kernel_k_means(k, x, dummyml.kernel.RadialBasisFunctionKernel)
     y = np.random.randint(0,k,size=dataset_size, dtype=np.int32)
