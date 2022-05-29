@@ -12,7 +12,7 @@ DummyML has the following dependencies:
 
     cmake   >=  3.4
     python  >=  3
-    numpy   >=  1.22.3
+    numpy   >=  1.7.0
 ## Usage
 
     $ git clone --recursive https://github.com/BlenderWang9487/DummyML.git
