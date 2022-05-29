@@ -35,7 +35,7 @@ class CMakeBuild(build_ext):
         pyenv_root = os.environ.get("PYENV_ROOT")
 
         cmake_args = [
-            f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}",
+            f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}/dummyml",
             "-DCMAKE_BUILD_TYPE=Release",
             "-DTRANSIT_INCLUDE_TESTS:BOOL=OFF",
         ]
@@ -51,7 +51,7 @@ class CMakeBuild(build_ext):
         subprocess.check_call(["cmake", cwd] + cmake_args, cwd=self.build_temp, env=env)
 
         self.announce("Building extensions")
-        cmake_cmd = ["cmake", "--build", "build"] + build_args
+        cmake_cmd = ["cmake", "--build", "."] + build_args
         subprocess.check_call(cmake_cmd, cwd=self.build_temp)
 
 
@@ -70,11 +70,10 @@ core functions are implemented in C++
     zip_safe=False,
     license="MIT",
     install_requires=[
-        "dummyml",
         "numpy>=1.7.0"
     ],
     ext_modules=[CMakeExtension("dummyml")],
     cmdclass=dict(build_ext=CMakeBuild),
     packages=find_packages(exclude=["tests"]),
-    package_data={"": "*.so"},
+    package_data={"": ["*.so"]},
 )
