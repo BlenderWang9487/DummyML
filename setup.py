@@ -1,3 +1,9 @@
+import sys
+from glob import glob
+DIR = os.path.abspath(os.path.dirname(__file__))
+
+sys.path.append(os.path.join(DIR, "extern", "pybind11"))
+from pybind11.setup_helpers import Pybind11Extension, build_ext, ParallelCompile
 import subprocess
 import os
 from pathlib import Path
@@ -35,9 +41,8 @@ class CMakeBuild(build_ext):
         pyenv_root = os.environ.get("PYENV_ROOT")
 
         cmake_args = [
-            f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}/dummyml",
-            "-DCMAKE_BUILD_TYPE=Release",
-            "-DTRANSIT_INCLUDE_TESTS:BOOL=OFF",
+            f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}",
+            "-DCMAKE_BUILD_TYPE=Release"
         ]
 
         if pyenv_root is not None:
@@ -47,13 +52,28 @@ class CMakeBuild(build_ext):
 
         env = os.environ.copy()
 
-        self.announce("Running CMake prepare", level=3)
+        self.announce(f"Running CMake prepare", level=3)
         subprocess.check_call(["cmake", cwd] + cmake_args, cwd=self.build_temp, env=env)
 
         self.announce("Building extensions")
         cmake_cmd = ["cmake", "--build", "."] + build_args
         subprocess.check_call(cmake_cmd, cwd=self.build_temp)
 
+
+ext_modules = [
+    Pybind11Extension(
+        'dummyml',
+        glob('src/dummyml/*.cpp'),
+        include_dirs=[
+            "include/dummyml",
+            "extern/eigen"
+        ],
+        cxx_std=17,
+        include_pybind11=True
+    )
+]
+
+ParallelCompile("NPY_NUM_BUILD_JOBS").install()
 
 setup(
     name="dummyml",
@@ -72,8 +92,6 @@ core functions are implemented in C++
     install_requires=[
         "numpy>=1.7.0"
     ],
-    ext_modules=[CMakeExtension("dummyml")],
-    cmdclass=dict(build_ext=CMakeBuild),
-    packages=find_packages(exclude=["tests"]),
-    package_data={"": ["*.so"]},
+    cmdclass=dict(build_ext=build_ext),
+    ext_modules=ext_modules,
 )
